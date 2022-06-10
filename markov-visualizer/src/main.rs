@@ -6,18 +6,9 @@ fn main() {
     print_steps(
         "1101",
         &[
-            Rule {
-                input: "1".to_owned(),
-                output: "0x".to_owned(),
-            },
-            Rule {
-                input: "x0".to_owned(),
-                output: "0xx".to_owned(),
-            },
-            Rule {
-                input: "0".to_owned(),
-                output: "".to_owned(),
-            },
+            Rule::new("1", "0x"),
+            Rule::new("x0", "0xx"),
+            Rule::new("0", ""),
         ],
         Duration::from_millis(500),
     )

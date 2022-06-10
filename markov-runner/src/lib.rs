@@ -5,6 +5,15 @@ pub struct Rule {
     pub output: String,
 }
 
+impl Rule {
+    pub fn new(input: &str, output: &str) -> Self {
+        Self {
+            input: input.to_owned(),
+            output: output.to_owned(),
+        }
+    }
+}
+
 fn get_random_match(input: &str, to_match: &str) -> Option<usize> {
     input.find(to_match)
 }
@@ -17,14 +26,14 @@ pub fn step_markov_1d(input: &str, rules: &[Rule]) -> Option<String> {
             return Some(result);
         }
     }
-    return None;
+    None
 }
 
 pub fn run_markov_1d(input: &str, rules: &[Rule]) -> Result<String, Box<dyn Error>> {
     if let Some(r) = step_markov_1d(input, rules) {
-        return run_markov_1d(&r, rules);
+        run_markov_1d(&r, rules)
     } else {
-        return Ok(input.to_owned());
+        Ok(input.to_owned())
     }
 }
 
@@ -34,14 +43,7 @@ mod test {
 
     #[test]
     fn basis() {
-        let result = run_markov_1d(
-            "AB",
-            &[Rule {
-                input: "AB".to_owned(),
-                output: "BA".to_owned(),
-            }],
-        )
-        .unwrap();
+        let result = run_markov_1d("AB", &[Rule::new("AB", "BA")]).unwrap();
         assert_eq!(&result, "BA")
     }
 
@@ -50,18 +52,9 @@ mod test {
         let result = run_markov_1d(
             "110",
             &[
-                Rule {
-                    input: "1".to_owned(),
-                    output: "0x".to_owned(),
-                },
-                Rule {
-                    input: "x0".to_owned(),
-                    output: "0xx".to_owned(),
-                },
-                Rule {
-                    input: "0".to_owned(),
-                    output: "".to_owned(),
-                },
+                Rule::new("1", "0x"),
+                Rule::new("x0", "0xx"),
+                Rule::new("0", ""),
             ],
         )
         .unwrap();
