@@ -1,37 +1,15 @@
-use std::error::Error;
+pub mod tokens;
 
-pub struct Rule {
-    pub input: String,
-    pub output: String,
+use anyhow::Result;
+use tokens::Token;
+
+pub fn step_markov_1d<T: Token>(input: &str, token: &T) -> Option<String> {
+    token.apply(input)
 }
 
-impl Rule {
-    pub fn new(input: &str, output: &str) -> Self {
-        Self {
-            input: input.to_owned(),
-            output: output.to_owned(),
-        }
-    }
-}
-
-fn get_random_match(input: &str, to_match: &str) -> Option<usize> {
-    input.find(to_match)
-}
-
-pub fn step_markov_1d(input: &str, rules: &[Rule]) -> Option<String> {
-    let mut result = input.to_owned();
-    for rule in rules {
-        if let Some(index) = get_random_match(&result, &rule.input) {
-            result.replace_range(index..index + rule.input.len(), &rule.output);
-            return Some(result);
-        }
-    }
-    None
-}
-
-pub fn run_markov_1d(input: &str, rules: &[Rule]) -> Result<String, Box<dyn Error>> {
-    if let Some(r) = step_markov_1d(input, rules) {
-        run_markov_1d(&r, rules)
+pub fn run_markov_1d<T: Token>(input: &str, token: &T) -> Result<String> {
+    if let Some(r) = step_markov_1d(input, token) {
+        run_markov_1d(&r, token)
     } else {
         Ok(input.to_owned())
     }
@@ -39,25 +17,25 @@ pub fn run_markov_1d(input: &str, rules: &[Rule]) -> Result<String, Box<dyn Erro
 
 #[cfg(test)]
 mod test {
-    use crate::{run_markov_1d, Rule};
+    use crate::{
+        run_markov_1d,
+        tokens::{Rule, Sequence},
+    };
 
     #[test]
     fn basis() {
-        let result = run_markov_1d("AB", &[Rule::new("AB", "BA")]).unwrap();
+        let token = Sequence::new().add_rule(Rule::new("AB", "BA"));
+        let result = run_markov_1d("AB", &token).unwrap();
         assert_eq!(&result, "BA")
     }
 
     #[test]
     fn binary_converter() {
-        let result = run_markov_1d(
-            "110",
-            &[
-                Rule::new("1", "0x"),
-                Rule::new("x0", "0xx"),
-                Rule::new("0", ""),
-            ],
-        )
-        .unwrap();
+        let token = Sequence::new()
+            .add_rule(Rule::new("1", "0x"))
+            .add_rule(Rule::new("x0", "0xx"))
+            .add_rule(Rule::new("0", ""));
+        let result = run_markov_1d("110", &token).unwrap();
         assert_eq!(&result, "xxxxxx")
     }
 }
