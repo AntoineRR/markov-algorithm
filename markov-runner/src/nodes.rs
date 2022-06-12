@@ -82,3 +82,57 @@ impl Node for Rule {
         None
     }
 }
+
+#[cfg(test)]
+mod test {
+    use crate::nodes::{Node, RandomChoice, Rule, Sequence};
+
+    #[test]
+    fn rule_valid() {
+        let rule = Rule::new("AB", "BA");
+        assert_eq!(rule.apply("AB"), Some("BA".to_owned()));
+    }
+
+    #[test]
+    fn rule_invalid() {
+        let rule = Rule::new("AB", "BA");
+        assert_eq!(rule.apply(".."), None);
+    }
+
+    #[test]
+    fn sequence_valid() {
+        let sequence = Sequence::new()
+            .add_node(Rule::new("AB", "BA"))
+            .add_node(Rule::new("BB", "AA"));
+        assert_eq!(sequence.apply("ABB"), Some("BAB".to_owned()));
+
+        let sequence = Sequence::new()
+            .add_node(Rule::new("AB", "BA"))
+            .add_node(Rule::new("BB", "AA"));
+        assert_eq!(sequence.apply("BBA"), Some("AAA".to_owned()));
+    }
+
+    #[test]
+    fn sequence_invalid() {
+        let sequence = Sequence::new()
+            .add_node(Rule::new("AB", "BA"))
+            .add_node(Rule::new("BB", "AA"));
+        assert_eq!(sequence.apply(".."), None);
+    }
+
+    #[test]
+    fn random_choice_valid() {
+        let rd = RandomChoice::new()
+            .add_node(Rule::new("AB", "BA"))
+            .add_node(Rule::new("BB", "AA"));
+        assert!([Some("BAB".to_owned()), Some("AAA".to_owned())].contains(&rd.apply("ABB")));
+    }
+
+    #[test]
+    fn random_choice_invalid() {
+        let rd = Sequence::new()
+            .add_node(Rule::new("AB", "BA"))
+            .add_node(Rule::new("BB", "AA"));
+        assert_eq!(rd.apply(".."), None);
+    }
+}
