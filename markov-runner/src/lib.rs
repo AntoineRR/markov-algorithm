@@ -1,15 +1,15 @@
-pub mod tokens;
+pub mod nodes;
 
 use anyhow::Result;
-use tokens::Token;
+use nodes::Node;
 
-pub fn step_markov_1d<T: Token>(input: &str, token: &T) -> Option<String> {
-    token.apply(input)
+pub fn step_markov_1d<T: Node>(input: &str, node: &T) -> Option<String> {
+    node.apply(input)
 }
 
-pub fn run_markov_1d<T: Token>(input: &str, token: &T) -> Result<String> {
-    if let Some(r) = step_markov_1d(input, token) {
-        run_markov_1d(&r, token)
+pub fn run_markov_1d<T: Node>(input: &str, node: &T) -> Result<String> {
+    if let Some(r) = step_markov_1d(input, node) {
+        run_markov_1d(&r, node)
     } else {
         Ok(input.to_owned())
     }
@@ -18,24 +18,24 @@ pub fn run_markov_1d<T: Token>(input: &str, token: &T) -> Result<String> {
 #[cfg(test)]
 mod test {
     use crate::{
+        nodes::{Rule, Sequence},
         run_markov_1d,
-        tokens::{Rule, Sequence},
     };
 
     #[test]
     fn basis() {
-        let token = Sequence::new().add_rule(Rule::new("AB", "BA"));
-        let result = run_markov_1d("AB", &token).unwrap();
+        let node = Sequence::new().add_node(Rule::new("AB", "BA"));
+        let result = run_markov_1d("AB", &node).unwrap();
         assert_eq!(&result, "BA")
     }
 
     #[test]
     fn binary_converter() {
-        let token = Sequence::new()
-            .add_rule(Rule::new("1", "0x"))
-            .add_rule(Rule::new("x0", "0xx"))
-            .add_rule(Rule::new("0", ""));
-        let result = run_markov_1d("110", &token).unwrap();
+        let node = Sequence::new()
+            .add_node(Rule::new("1", "0x"))
+            .add_node(Rule::new("x0", "0xx"))
+            .add_node(Rule::new("0", ""));
+        let result = run_markov_1d("110", &node).unwrap();
         assert_eq!(&result, "xxxxxx")
     }
 }
