@@ -18,6 +18,23 @@ This library crate is the core of the Markov algortihm interpreter. Given an inp
 
 This binary crates uses the Markov Runner crate to compute the result of a Markov algorithm, and display it step after step on screen.
 
+## How to run
+
+To run this project, one must have Rust (>= 1.60.0) installed.
+A description of the CLI can be displayed using:
+```
+$ cargo run -- --help
+```
+
+Two algorithms are currently provided:
+- `binary-to-unary` -> Converts a number in binary format to its unary representation. Example: "101" -> "xxxxx"
+- `random-march` -> Runs a 1D random march algorithm. Example input: "OOOOXOOOO"
+
+Example command to run `binary-to-unary` with input `101`:
+```
+$ cargo run -- -a binary-to-unary -i 101
+```
+
 ## References
 
 - [Markov Junior](https://github.com/mxgmn/MarkovJunior)
