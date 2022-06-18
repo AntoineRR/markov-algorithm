@@ -8,7 +8,7 @@ use anyhow::Result;
 use crossterm::{cursor, style, terminal, QueueableCommand};
 use markov_runner::{
     nodes::{Node, RandomChoice, Rule, Sequence},
-    step_markov_1d,
+    run_markov_1d, step_markov_1d,
 };
 
 use clap::Parser;
@@ -24,12 +24,23 @@ struct Args {
     /// The input for the algorithm
     #[clap(short, long, value_parser)]
     input: String,
+
+    /// The method to use to display the result of the algorithm
+    #[clap(short, long, value_parser)]
+    display_method: Option<DisplayMethod>,
 }
 
 #[derive(Debug, Clone, clap::ValueEnum)]
 enum Algorithm {
     BinaryToUnary,
     RandomMarch,
+}
+
+#[derive(Debug, Clone, clap::ValueEnum)]
+enum DisplayMethod {
+    Evolutive,
+    AllSteps,
+    FinalResult,
 }
 
 fn main() -> Result<()> {
@@ -40,8 +51,14 @@ fn main() -> Result<()> {
         Algorithm::BinaryToUnary => binary_to_unary_node(),
         Algorithm::RandomMarch => random_march(),
     };
-    print_steps(&mut stdout, &args.input, &node, Duration::from_millis(500))?;
-    Ok(())
+    match args.display_method {
+        Some(DisplayMethod::Evolutive) => {
+            evolutive(&mut stdout, &args.input, &node, Duration::from_millis(500))
+        }
+        Some(DisplayMethod::AllSteps) => all_steps(&mut stdout, &args.input, &node),
+        Some(DisplayMethod::FinalResult) => final_result(&mut stdout, &args.input, &node),
+        None => all_steps(&mut stdout, &args.input, &node),
+    }
 }
 
 fn binary_to_unary_node() -> Sequence {
@@ -59,7 +76,7 @@ fn random_march() -> Sequence {
     ))
 }
 
-fn print_step(stdout: &mut Stdout, r: &str) -> Result<()> {
+fn clear_and_print_step(stdout: &mut Stdout, r: &str) -> Result<()> {
     stdout
         .queue(cursor::SavePosition)?
         .queue(terminal::Clear(terminal::ClearType::CurrentLine))?
@@ -70,11 +87,25 @@ fn print_step(stdout: &mut Stdout, r: &str) -> Result<()> {
     Ok(())
 }
 
-fn print_steps(stdout: &mut Stdout, input: &str, node: &impl Node, delay: Duration) -> Result<()> {
+fn evolutive(stdout: &mut Stdout, input: &str, node: &impl Node, delay: Duration) -> Result<()> {
     if let Some(r) = step_markov_1d(input, node) {
-        print_step(stdout, &r)?;
+        clear_and_print_step(stdout, &r)?;
         thread::sleep(delay);
-        print_steps(stdout, &r, node, delay)?;
+        evolutive(stdout, &r, node, delay)?;
     }
+    Ok(())
+}
+
+fn all_steps(stdout: &mut Stdout, input: &str, node: &impl Node) -> Result<()> {
+    if let Some(r) = step_markov_1d(input, node) {
+        stdout.queue(style::Print(r.clone() + "\n"))?.flush()?;
+        all_steps(stdout, &r, node)?;
+    }
+    Ok(())
+}
+
+fn final_result(stdout: &mut Stdout, input: &str, node: &impl Node) -> Result<()> {
+    let result = run_markov_1d(input, node)?;
+    stdout.queue(style::Print(result + "\n"))?.flush()?;
     Ok(())
 }
