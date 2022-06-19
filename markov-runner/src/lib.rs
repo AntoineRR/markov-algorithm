@@ -24,7 +24,7 @@ mod test {
 
     #[test]
     fn basis() {
-        let node = Sequence::new().add_node(Rule::new("AB", "BA"));
+        let node = Sequence::new().add_node(Rule::boxed("AB", "BA"));
         let result = run_markov_1d("AB", &node).unwrap();
         assert_eq!(&result, "BA")
     }
@@ -32,9 +32,9 @@ mod test {
     #[test]
     fn binary_converter() {
         let node = Sequence::new()
-            .add_node(Rule::new("1", "0x"))
-            .add_node(Rule::new("x0", "0xx"))
-            .add_node(Rule::new("0", ""));
+            .add_node(Rule::boxed("1", "0x"))
+            .add_node(Rule::boxed("x0", "0xx"))
+            .add_node(Rule::boxed("0", ""));
         let result = run_markov_1d("110", &node).unwrap();
         assert_eq!(&result, "xxxxxx")
     }

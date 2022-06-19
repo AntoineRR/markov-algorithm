@@ -64,11 +64,15 @@ pub struct Rule {
 }
 
 impl Rule {
-    pub fn new(input: &str, output: &str) -> Box<Self> {
-        Box::new(Self {
+    pub fn new(input: &str, output: &str) -> Self {
+        Self {
             input: input.to_owned(),
             output: output.to_owned(),
-        })
+        }
+    }
+
+    pub fn boxed(input: &str, output: &str) -> Box<Self> {
+        Box::new(Self::new(input, output))
     }
 }
 
@@ -102,37 +106,37 @@ mod test {
     #[test]
     fn sequence_valid() {
         let sequence = Sequence::new()
-            .add_node(Rule::new("AB", "BA"))
-            .add_node(Rule::new("BB", "AA"));
+            .add_node(Rule::boxed("AB", "BA"))
+            .add_node(Rule::boxed("BB", "AA"));
         assert_eq!(sequence.apply("ABB"), Some("BAB".to_owned()));
 
         let sequence = Sequence::new()
-            .add_node(Rule::new("AB", "BA"))
-            .add_node(Rule::new("BB", "AA"));
+            .add_node(Rule::boxed("AB", "BA"))
+            .add_node(Rule::boxed("BB", "AA"));
         assert_eq!(sequence.apply("BBA"), Some("AAA".to_owned()));
     }
 
     #[test]
     fn sequence_invalid() {
         let sequence = Sequence::new()
-            .add_node(Rule::new("AB", "BA"))
-            .add_node(Rule::new("BB", "AA"));
+            .add_node(Rule::boxed("AB", "BA"))
+            .add_node(Rule::boxed("BB", "AA"));
         assert_eq!(sequence.apply(".."), None);
     }
 
     #[test]
     fn random_choice_valid() {
         let rd = RandomChoice::new()
-            .add_node(Rule::new("AB", "BA"))
-            .add_node(Rule::new("BB", "AA"));
+            .add_node(Rule::boxed("AB", "BA"))
+            .add_node(Rule::boxed("BB", "AA"));
         assert!([Some("BAB".to_owned()), Some("AAA".to_owned())].contains(&rd.apply("ABB")));
     }
 
     #[test]
     fn random_choice_invalid() {
         let rd = Sequence::new()
-            .add_node(Rule::new("AB", "BA"))
-            .add_node(Rule::new("BB", "AA"));
+            .add_node(Rule::boxed("AB", "BA"))
+            .add_node(Rule::boxed("BB", "AA"));
         assert_eq!(rd.apply(".."), None);
     }
 }

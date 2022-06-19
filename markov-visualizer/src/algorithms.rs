@@ -8,15 +8,15 @@ pub enum Algorithm {
 
 pub fn binary_to_unary_node() -> Sequence {
     Sequence::new()
-        .add_node(Rule::new("1", "0x"))
-        .add_node(Rule::new("x0", "0xx"))
-        .add_node(Rule::new("0", ""))
+        .add_node(Rule::boxed("1", "0x"))
+        .add_node(Rule::boxed("x0", "0xx"))
+        .add_node(Rule::boxed("0", ""))
 }
 
 pub fn random_march() -> Sequence {
     Sequence::new().add_node(Box::new(
         RandomChoice::new()
-            .add_node(Rule::new("OXO", "OOX"))
-            .add_node(Rule::new("OXO", "XOO")),
+            .add_node(Rule::boxed("OXO", "OOX"))
+            .add_node(Rule::boxed("OXO", "XOO")),
     ))
 }
