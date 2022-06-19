@@ -1,12 +1,34 @@
+//! This crate provides a way to run Markov algorithms.
+
 pub mod nodes;
 
 use anyhow::Result;
 use nodes::Node;
 
+/// Run one step of the specified Markov algorithm.
+///
+/// # Example
+/// ```
+/// use markov_runner::nodes::Rule;
+/// use markov_runner::step_markov_1d;
+///
+/// let node = Rule::new("AB", "BA");
+/// assert!(step_markov_1d("ABAB", &node) == Some("BAAB".to_owned()));
+/// ```
 pub fn step_markov_1d<T: Node>(input: &str, node: &T) -> Option<String> {
     node.apply(input)
 }
 
+/// Run the specified Markov algorithm to completion
+///
+/// # Example
+/// ```
+/// use markov_runner::nodes::Rule;
+/// use markov_runner::run_markov_1d;
+///
+/// let node = Rule::new("AB", "BA");
+/// assert!(run_markov_1d("ABAB", &node).unwrap() == "BBAA".to_owned());
+/// ```
 pub fn run_markov_1d<T: Node>(input: &str, node: &T) -> Result<String> {
     if let Some(r) = step_markov_1d(input, node) {
         run_markov_1d(&r, node)
