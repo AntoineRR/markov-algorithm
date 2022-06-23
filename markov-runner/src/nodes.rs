@@ -2,7 +2,7 @@
 
 use std::fmt::Debug;
 
-use rand::prelude::SliceRandom;
+use rand::prelude::{IteratorRandom, SliceRandom};
 
 pub trait Node: Debug {
     fn apply(&self, input: &str) -> Option<String>;
@@ -88,6 +88,17 @@ impl Node for RandomChoice {
     }
 }
 
+/// The matching strategy to adopt for a Rule.
+/// - First : the first occurence of the pattern in the input will be chosen.
+/// - Last : the last occurence of the pattern in the input will be chosen.
+/// - Random : a random occurence of the pattern in the input will be chosen.
+#[derive(Debug)]
+pub enum MatchingStrategy {
+    First,
+    Last,
+    Random,
+}
+
 /// A rule seeks a specified pattern inside the input and turns it into the specified output.
 ///
 /// # Example
@@ -101,6 +112,7 @@ impl Node for RandomChoice {
 pub struct Rule {
     pub pattern: String,
     pub output: String,
+    pub matching_strategy: MatchingStrategy,
 }
 
 impl Rule {
@@ -109,6 +121,7 @@ impl Rule {
         Self {
             pattern: pattern.to_owned(),
             output: output.to_owned(),
+            matching_strategy: MatchingStrategy::First,
         }
     }
 
@@ -117,13 +130,29 @@ impl Rule {
     pub fn boxed(input: &str, output: &str) -> Box<Self> {
         Box::new(Self::new(input, output))
     }
+
+    /// Set the matching strategy for this Rule.
+    pub fn set_matching_strategy(mut self, matching_strategy: MatchingStrategy) -> Self {
+        self.matching_strategy = matching_strategy;
+        self
+    }
 }
 
 impl Node for Rule {
     fn apply(&self, input: &str) -> Option<String> {
         let mut result = input.to_owned();
-        // TODO: introduce a pattern matching strategy.
-        if let Some(index) = input.find(&self.pattern) {
+        let index = match self.matching_strategy {
+            MatchingStrategy::First => input.find(&self.pattern),
+            MatchingStrategy::Last => input.rfind(&self.pattern),
+            MatchingStrategy::Random => input
+                .as_bytes()
+                .windows(self.pattern.len())
+                .zip(0..input.len())
+                .filter(|x| x.0 == self.pattern.as_bytes())
+                .map(|x| x.1)
+                .choose(&mut rand::thread_rng()),
+        };
+        if let Some(index) = index {
             result.replace_range(index..index + self.pattern.len(), &self.output);
             return Some(result);
         }
@@ -133,7 +162,7 @@ impl Node for Rule {
 
 #[cfg(test)]
 mod test {
-    use crate::nodes::{Node, RandomChoice, Rule, Sequence};
+    use crate::nodes::{MatchingStrategy, Node, RandomChoice, Rule, Sequence};
 
     #[test]
     fn rule_valid() {
@@ -145,6 +174,29 @@ mod test {
     fn rule_invalid() {
         let rule = Rule::new("AB", "BA");
         assert_eq!(rule.apply(".."), None);
+    }
+
+    #[test]
+    fn rule_matching_strategy() {
+        let rule = Rule::new("AB", "BA").set_matching_strategy(MatchingStrategy::First);
+        assert_eq!(rule.apply("ABABAB"), Some("BAABAB".to_owned()));
+
+        let rule = Rule::new("AB", "BA").set_matching_strategy(MatchingStrategy::Last);
+        assert_eq!(rule.apply("ABABAB"), Some("ABABBA".to_owned()));
+
+        let rule = Rule::new("AB", "BA").set_matching_strategy(MatchingStrategy::Random);
+        assert!([
+            Some("BAABAB".to_owned()),
+            Some("ABABBA".to_owned()),
+            Some("ABBAAB".to_owned())
+        ]
+        .contains(&rule.apply("ABABAB")));
+
+        // Overlaping patterns
+        let rule = Rule::new("ABA", "BAB").set_matching_strategy(MatchingStrategy::Random);
+        assert!(
+            [Some("BABBAB".to_owned()), Some("ABBABB".to_owned()),].contains(&rule.apply("ABABAB"))
+        );
     }
 
     #[test]
