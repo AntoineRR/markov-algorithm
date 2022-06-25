@@ -5,9 +5,9 @@ use std::{io::stdout, time::Duration};
 
 use algorithms::{binary_to_unary_node, random_march, Algorithm};
 use anyhow::Result;
-use display_methods::{all_steps, evolutive, final_result, DisplayMethod};
-
 use clap::Parser;
+use display_methods::{all_steps, evolutive, final_result, DisplayMethod};
+use markov_runner::nodes::Node;
 
 /// A simple visualization tool for Markov algorithms
 #[derive(Parser, Debug)]
@@ -30,16 +30,16 @@ fn main() -> Result<()> {
     let args = Args::parse();
 
     let mut stdout = stdout();
-    let node = match args.algorithm {
-        Algorithm::BinaryToUnary => binary_to_unary_node(),
-        Algorithm::RandomMarch => random_march(),
+    let node: Box<dyn Node> = match args.algorithm {
+        Algorithm::BinaryToUnary => Box::new(binary_to_unary_node()),
+        Algorithm::RandomMarch => Box::new(random_march()),
     };
     match args.display_method {
         Some(DisplayMethod::Evolutive) => {
-            evolutive(&mut stdout, &args.input, &node, Duration::from_millis(500))
+            evolutive(&mut stdout, &args.input, &*node, Duration::from_millis(500))
         }
-        Some(DisplayMethod::AllSteps) => all_steps(&mut stdout, &args.input, &node),
-        Some(DisplayMethod::FinalResult) => final_result(&mut stdout, &args.input, &node),
-        None => all_steps(&mut stdout, &args.input, &node),
+        Some(DisplayMethod::AllSteps) => all_steps(&mut stdout, &args.input, &*node),
+        Some(DisplayMethod::FinalResult) => final_result(&mut stdout, &args.input, &*node),
+        None => all_steps(&mut stdout, &args.input, &*node),
     }
 }

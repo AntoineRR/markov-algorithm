@@ -15,7 +15,7 @@ use nodes::Node;
 /// let node = Rule::new("AB", "BA");
 /// assert!(step_markov_1d("ABAB", &node) == Some("BAAB".to_owned()));
 /// ```
-pub fn step_markov_1d<T: Node>(input: &str, node: &T) -> Option<String> {
+pub fn step_markov_1d(input: &str, node: &(impl Node + ?Sized)) -> Option<String> {
     node.apply(input)
 }
 
@@ -29,7 +29,7 @@ pub fn step_markov_1d<T: Node>(input: &str, node: &T) -> Option<String> {
 /// let node = Rule::new("AB", "BA");
 /// assert!(run_markov_1d("ABAB", &node).unwrap() == "BBAA".to_owned());
 /// ```
-pub fn run_markov_1d<T: Node>(input: &str, node: &T) -> Result<String> {
+pub fn run_markov_1d(input: &str, node: &(impl Node + ?Sized)) -> Result<String> {
     if let Some(r) = step_markov_1d(input, node) {
         run_markov_1d(&r, node)
     } else {

@@ -17,7 +17,7 @@ pub enum DisplayMethod {
 pub fn evolutive(
     stdout: &mut Stdout,
     input: &str,
-    node: &impl Node,
+    node: &(impl Node + ?Sized),
     delay: Duration,
 ) -> Result<()> {
     if let Some(r) = step_markov_1d(input, node) {
@@ -34,7 +34,7 @@ pub fn evolutive(
     Ok(())
 }
 
-pub fn all_steps(stdout: &mut Stdout, input: &str, node: &impl Node) -> Result<()> {
+pub fn all_steps(stdout: &mut Stdout, input: &str, node: &(impl Node + ?Sized)) -> Result<()> {
     if let Some(r) = step_markov_1d(input, node) {
         stdout.queue(style::Print(r.clone() + "\n"))?.flush()?;
         all_steps(stdout, &r, node)?;
@@ -42,7 +42,7 @@ pub fn all_steps(stdout: &mut Stdout, input: &str, node: &impl Node) -> Result<(
     Ok(())
 }
 
-pub fn final_result(stdout: &mut Stdout, input: &str, node: &impl Node) -> Result<()> {
+pub fn final_result(stdout: &mut Stdout, input: &str, node: &(impl Node + ?Sized)) -> Result<()> {
     let result = run_markov_1d(input, node)?;
     stdout.queue(style::Print(result + "\n"))?.flush()?;
     Ok(())

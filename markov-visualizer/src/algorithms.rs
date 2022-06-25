@@ -13,10 +13,8 @@ pub fn binary_to_unary_node() -> Sequence {
         .add_node(Rule::boxed("0", ""))
 }
 
-pub fn random_march() -> Sequence {
-    Sequence::new().add_node(Box::new(
-        RandomChoice::new()
-            .add_node(Rule::boxed("OXO", "OOX"))
-            .add_node(Rule::boxed("OXO", "XOO")),
-    ))
+pub fn random_march() -> RandomChoice {
+    RandomChoice::new()
+        .add_node(Rule::boxed("OXO", "OOX"))
+        .add_node(Rule::boxed("OXO", "XOO"))
 }
